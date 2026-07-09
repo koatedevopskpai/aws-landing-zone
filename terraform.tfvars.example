@@ -1,0 +1,69 @@
+# =============================================================================
+# TERRAFORM.TFVARS.EXAMPLE — AWS LANDING ZONE FOR SECONDWAVE
+# =============================================================================
+# Copy this file to terraform.tfvars and replace values with your actual AWS
+# account IDs and configuration. All sensitive values should be stored in
+# Terraform Cloud, Vault, or AWS Secrets Manager for production use.
+
+org_id = "o-abc123def"
+
+account_ids = {
+  shared-services = "111111111111"
+  dev             = "222222222222"
+  staging         = "333333333333"
+  prod            = "444444444444"
+}
+
+environments = {
+  dev = {
+    region           = "eu-west-2"
+    dr_region        = null
+    enable_natgw     = false
+    enable_vpn       = false
+    enable_flow_logs = true
+  }
+  staging = {
+    region           = "eu-west-2"
+    dr_region        = null
+    enable_natgw     = true
+    enable_vpn       = false
+    enable_flow_logs = true
+  }
+  prod = {
+    region           = "eu-west-2"
+    dr_region        = "eu-west-1"
+    enable_natgw     = true
+    enable_vpn       = true
+    enable_flow_logs = true
+  }
+}
+
+vpc_cidrs = {
+  shared-services = "10.0.0.0/16"
+  dev             = "10.1.0.0/16"
+  staging         = "10.2.0.0/16"
+  prod            = "10.3.0.0/16"
+}
+
+region = "eu-west-2"
+
+squad_names = ["Platform", "CoreBanking", "Digital", "Data"]
+
+environment = "dev"
+
+project_name = "secondwave"
+
+tags = {
+  Project   = "secondwave"
+  Owner     = "platform-team"
+  ManagedBy = "terraform"
+}
+
+# SECURITY SAFEGUARD: KMS key administrators should be limited to Platform squad.
+# In production, use Terraform Cloud sensitive variables or Vault.
+kms_key_administrators = [
+  "arn:aws:iam::111111111111:role/TerraformExecutionRole",
+]
+
+enable_config     = true
+enable_object_lock = true
