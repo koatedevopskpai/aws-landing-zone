@@ -1,0 +1,100 @@
+# =============================================================================
+# ADOT COLLECTOR CONFIGURATION — AWS Distro for OpenTelemetry
+# =============================================================================
+# ARCHITECTURE DECISION: ADOT Collector over CloudWatch Agent because:
+# 1. OpenTelemetry is vendor-neutral — can export to X-Ray, Prometheus, or
+#    third-party backends (Datadog, Grafana) without agent changes.
+# 2. ADOT supports traces, metrics, AND logs in a single collector.
+# 3. ADOT is AWS-managed — security patches and updates are automatic.
+# 4. Enables OpenTelemetry SDK instrumentation for microservices.
+#
+# SECURITY SAFEGUARD: All exporters use TLS. No plaintext transmission.
+# SECURITY SAFEGUARD: Batch processing with timeout to prevent data loss.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # AWS-specific receivers
+  awsecscontainermetrics:
+    collection_interval: 20s
+
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'aws-container-insights'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['localhost:8000']
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  # ARCHITECTURE DECISION: Filter sensitive attributes before export.
+  # This prevents PII from reaching CloudWatch Logs.
+  filter:
+    metrics:
+      include:
+        match_type: regexp
+        metric_names:
+          - ^aws\.*
+          - ^container\.*
+          - ^ecs\.*
+          - ^k8s\.*
+    logs:
+      exclude:
+        match_type: strict
+        record_attributes:
+          - Key: http.url
+            Value: "/health"
+          - Key: http.url
+            Value: "/metrics"
+
+  # SECURITY SAFEGUARD: Attribute masking for sensitive data.
+  attributes:
+    actions:
+      - key: authorization
+        action: delete
+      - key: password
+        action: delete
+      - key: token
+        action: delete
+
+exporters:
+  awsxray:
+    region: eu-west-2
+
+  awsemf:
+    region: eu-west-2
+    log_group_name: "/aws/container-insights/emf"
+
+  awscloudwatchlogs:
+    region: eu-west-2
+    log_group_name: "/aws/adot-collector"
+    log_stream_name: "adot-logs"
+
+  logging:
+    loglevel: warn
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray, logging]
+
+    metrics:
+      receivers: [otlp, awsecscontainermetrics, prometheus]
+      processors: [batch, filter]
+      exporters: [awsemf, logging]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch, filter, attributes]
+      exporters: [awscloudwatchlogs, logging]

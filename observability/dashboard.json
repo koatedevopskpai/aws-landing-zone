@@ -1,0 +1,136 @@
+{
+  "dashboard": {
+    "name": "SecondWave-Landing-Zone-Observability",
+    "description": "CloudWatch Dashboard for AWS Landing Zone - VPC Flow Logs, NAT Gateway, TGW, KMS, Config Compliance",
+    "widgets": [
+      {
+        "type": "text",
+        "x": 0,
+        "y": 0,
+        "width": 24,
+        "height": 1,
+        "properties": {
+          "markdown": "# SecondWave Landing Zone - Infrastructure Observability\nThis dashboard monitors network, encryption, and compliance health across all environments."
+        }
+      },
+      {
+        "type": "metric",
+        "x": 0,
+        "y": 1,
+        "width": 12,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/VPC", "FlowLogsMaxBytesPerRecord", { "stat": "Sum", "label": "VPC Flow Logs Traffic", "region": "eu-west-2" } ]
+          ],
+          "period": 300,
+          "stat": "Sum",
+          "region": "eu-west-2",
+          "title": "VPC Flow Logs - Traffic Volume (All VPCs)",
+          "view": "timeSeries",
+          "stacked": false
+        }
+      },
+      {
+        "type": "metric",
+        "x": 12,
+        "y": 1,
+        "width": 12,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/NATGateway", "BytesOutToDestination", { "stat": "Sum", "label": "NAT GW Outbound", "region": "eu-west-2" } ],
+            [ ".", "PacketsOutToDestination", { "stat": "Sum", "label": "NAT GW Packets", "region": "eu-west-2" } ],
+            [ ".", "ConnectionAttemptCount", { "stat": "Sum", "label": "NAT GW Connections", "region": "eu-west-2" } ]
+          ],
+          "period": 300,
+          "stat": "Sum",
+          "region": "eu-west-2",
+          "title": "NAT Gateway Metrics (staging + prod)",
+          "view": "timeSeries",
+          "stacked": false
+        }
+      },
+      {
+        "type": "metric",
+        "x": 0,
+        "y": 7,
+        "width": 8,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/TransitGateway", "BytesIn", { "stat": "Sum", "label": "TGW In", "region": "eu-west-2" } ],
+            [ ".", "BytesOut", { "stat": "Sum", "label": "TGW Out", "region": "eu-west-2" } ],
+            [ ".", "PacketsIn", { "stat": "Sum", "label": "TGW Packets In", "region": "eu-west-2" } ]
+          ],
+          "period": 300,
+          "stat": "Sum",
+          "region": "eu-west-2",
+          "title": "Transit Gateway - Traffic",
+          "view": "timeSeries",
+          "stacked": false
+        }
+      },
+      {
+        "type": "metric",
+        "x": 8,
+        "y": 7,
+        "width": 8,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/KMS", "KeyRotations", { "stat": "Sum", "label": "KMS Key Rotations", "region": "eu-west-2" } ],
+            [ ".", "NumberOfKeysPendingDeletion", { "stat": "Average", "label": "Keys Pending Deletion", "region": "eu-west-2" } ]
+          ],
+          "period": 86400,
+          "stat": "Sum",
+          "region": "eu-west-2",
+          "title": "KMS Key Management",
+          "view": "timeSeries",
+          "stacked": false
+        }
+      },
+      {
+        "type": "metric",
+        "x": 16,
+        "y": 7,
+        "width": 8,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/Config", "NonCompliantResources", { "stat": "Average", "label": "Config Non-Compliant Resources", "region": "eu-west-2" } ],
+            [ ".", "ComplianceByConfigRule", { "stat": "Average", "label": "Config Compliance Score", "region": "eu-west-2" } ]
+          ],
+          "period": 3600,
+          "stat": "Average",
+          "region": "eu-west-2",
+          "title": "AWS Config Compliance Status",
+          "view": "timeSeries",
+          "stacked": false
+        }
+      },
+      {
+        "type": "metric",
+        "x": 0,
+        "y": 13,
+        "width": 12,
+        "height": 6,
+        "properties": {
+          "metrics": [
+            [ "AWS/TransitGateway", "AttachmentStatus", { "stat": "Average", "label": "TGW Attachment Status", "region": "eu-west-2" } ]
+          ],
+          "period": 60,
+          "stat": "Average",
+          "region": "eu-west-2",
+          "title": "Transit Gateway Attachment Health",
+          "view": "timeSeries",
+          "stacked": false,
+          "yAxis": {
+            "min": 0,
+            "max": 1
+          }
+        }
+      }
+    ]
+  }
+}

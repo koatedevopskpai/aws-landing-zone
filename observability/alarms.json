@@ -1,0 +1,70 @@
+{
+  "Alarms": {
+    "Description": "Composite alarms for SecondWave Landing Zone. Created via CloudFormation or Terraform.",
+    "CompositeAlarms": [
+      {
+        "AlarmName": "secondwave-config-non-compliance",
+        "AlarmDescription": "SECURITY SAFEGUARD: Triggered when Config rules detect non-compliant resources across any environment.",
+        "ActionsEnabled": true,
+        "AlarmActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "AlarmRule": "ALARM(\"secondwave-config-s3-public-read\") OR ALARM(\"secondwave-config-ebs-encrypted\") OR ALARM(\"secondwave-config-vpc-flow-logs\")",
+        "Tags": [
+          {"Key": "Project", "Value": "secondwave"},
+          {"Key": "ManagedBy", "Value": "terraform"}
+        ]
+      },
+      {
+        "AlarmName": "secondwave-kms-rotation-overdue",
+        "AlarmDescription": "SECURITY SAFEGUARD: KMS key rotation overdue — automatic annual rotation may have failed.",
+        "ActionsEnabled": true,
+        "AlarmActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "AlarmRule": "ALARM(\"secondwave-kms-s3-rotation\") OR ALARM(\"secondwave-kms-rds-rotation\") OR ALARM(\"secondwave-kms-ebs-rotation\")",
+        "Tags": [
+          {"Key": "Project", "Value": "secondwave"},
+          {"Key": "ManagedBy", "Value": "terraform"}
+        ]
+      },
+      {
+        "AlarmName": "secondwave-vpc-flow-log-gap",
+        "AlarmDescription": "SECURITY SAFEGUARD: Gap detected in VPC Flow Logs delivery — possible logging failure or misconfiguration.",
+        "ActionsEnabled": true,
+        "AlarmActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "AlarmRule": "ALARM(\"secondwave-flow-logs-dev\") OR ALARM(\"secondwave-flow-logs-staging\") OR ALARM(\"secondwave-flow-logs-prod\")",
+        "Tags": [
+          {"Key": "Project", "Value": "secondwave"},
+          {"Key": "ManagedBy", "Value": "terraform"}
+        ]
+      }
+    ],
+    "MetricAlarms": [
+      {
+        "AlarmName": "secondwave-config-s3-public-read",
+        "AlarmDescription": "S3 bucket with public read access detected.",
+        "ActionsEnabled": true,
+        "OKActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "AlarmActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "MetricName": "NonCompliantResources",
+        "Namespace": "AWS/Config",
+        "Statistic": "Average",
+        "Period": 300,
+        "EvaluationPeriods": 1,
+        "Threshold": 0,
+        "ComparisonOperator": "GreaterThanThreshold"
+      },
+      {
+        "AlarmName": "secondwave-kms-s3-rotation",
+        "AlarmDescription": "KMS key rotation for S3 key may be overdue.",
+        "ActionsEnabled": true,
+        "OKActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "AlarmActions": ["arn:aws:sns:eu-west-2:111111111111:secondwave-alarms"],
+        "MetricName": "KeyRotations",
+        "Namespace": "AWS/KMS",
+        "Statistic": "Sum",
+        "Period": 2592000,
+        "EvaluationPeriods": 1,
+        "Threshold": 0,
+        "ComparisonOperator": "LessThanOrEqualToThreshold"
+      }
+    ]
+  }
+}
