@@ -1,0 +1,14 @@
+# =============================================================================
+# ASDF TOOL VERSIONS — Consistent Development Environment
+# =============================================================================
+# ARCHITECTURE DECISION: asdf manages all tool versions (Terraform, Go, TFLint)
+# to ensure every engineer uses identical versions. No more "works on my machine".
+# Versions are pinned to match CI/CD workflows.
+
+terraform 1.9.8
+terragrunt 0.60.0
+tflint 0.51.0
+checkov 3.2.100
+infracost 0.10.38
+go 1.22.5
+pre-commit 3.8.0

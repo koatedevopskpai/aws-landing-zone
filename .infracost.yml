@@ -1,0 +1,36 @@
+# =============================================================================
+# INFRACOST CONFIGURATION — Cloud Cost Estimation
+# =============================================================================
+# ARCHITECTURE DECISION: Infracost provides cost estimates for every
+# Terraform plan. This enables cost-aware infrastructure decisions:
+# - Compare TGW vs VPC Peering costs (see ADR-001)
+# - Evaluate NAT Gateway vs VPC Endpoint cost trade-offs
+# - Forecast monthly cloud spend per environment
+#
+# ARCHITECTURE DECISION: GBP pricing for UK fintech compliance.
+# AWS prices are converted from USD using the current exchange rate.
+
+version: 0.1
+
+projects:
+  - path: .
+    name: secondwave-landing-zone
+    usage_file: .infracost-usage.yml
+
+currency: GBP
+
+# ARCHITECTURE DECISION: Exclude ephemeral test environments from cost estimates
+# to reduce noise in PR comments.
+exclude:
+  - path: tests/
+
+output_format:
+  - table
+  - json
+
+# ARCHITECTURE DECISION: Percentage thresholds for cost change alerts.
+# Changes > 10% or > £50/mo trigger warnings in CI.
+behavior:
+  show_skipped: false
+  no_color: false
+  include_all_paths: true

@@ -1,0 +1,48 @@
+# =============================================================================
+# PRE-COMMIT HOOKS — Automated Quality Gates
+# =============================================================================
+# ARCHITECTURE DECISION: Pre-commit hooks catch issues before they reach CI:
+# 1. terraform fmt — ensures consistent formatting across the team.
+# 2. terraform validate — checks syntax and provider requirements.
+# 3. tflint — AWS-specific linting (security and best practices).
+# 4. checkov — security scanning for CKV_AWS rules.
+# 5. trailing-whitespace — prevents unnecessary diffs.
+#
+# SECURITY SAFEGUARD: Security checks run locally so developers see issues
+# before committing — reduces feedback loop from CI.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.86.0
+    hooks:
+      - id: terraform_fmt
+        args:
+          - --args=-recursive
+      - id: terraform_validate
+        args:
+          - --init-args=-backend=false
+          - --args=-no-color
+      - id: terraform_tflint
+        args:
+          - --args=--config=.tflint.hcl
+          - --args=--format=compact
+      - id: terragrunt_validate
+        stages: [manual]
+
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.2.100
+    hooks:
+      - id: checkov
+        args:
+          - --directory=.
+          - --config-file=.checkov.yml
+        verbose: true
+        stages: [push]

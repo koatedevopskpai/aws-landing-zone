@@ -1,0 +1,59 @@
+# =============================================================================
+# CHECKOV CONFIGURATION — Infrastructure Security Scanning
+# =============================================================================
+# ARCHITECTURE DECISION: Checkov scans for CKV_AWS rules that detect
+# common security misconfigurations before deployment.
+# SECURITY SAFEGUARD: High-severity rules (CKV2_AWS_*) block the pipeline.
+# Medium-severity rules are warnings only.
+
+compact: true
+quiet: false
+skip_check: []
+
+# ARCHITECTURE DECISION: Skipping CKV_AWS_18 because we use IAM Identity Center
+# instead of IAM users (see modules/iam-identity-center/main.tf for rationale).
+skip_check:
+  - CKV_AWS_18   # IAM user access key rotation (not needed with Identity Center)
+  - CKV_AWS_40   # IAM user policy in use (Identity Center manages this)
+  - CKV_AWS_116  # Lambda DLQ (Lambda not used in this repo)
+
+# SECURITY SAFEGUARD: Enforce all AWS-specific CKV2 rules
+# CKV2 rules cover multi-resource compliance patterns.
+check:
+  - CKV_AWS_1    # IAM password policy
+  - CKV_AWS_3    # EBS encryption
+  - CKV_AWS_4    # RDS encryption
+  - CKV_AWS_5    # S3 public access
+  - CKV_AWS_6    # S3 bucket ACL
+  - CKV_AWS_7    # S3 bucket logging
+  - CKV_AWS_8    # S3 bucket versioning
+  - CKV_AWS_9    # S3 bucket encryption
+  - CKV_AWS_11   # S3 bucket public read
+  - CKV_AWS_13   # CloudTrail encryption
+  - CKV_AWS_14   # CloudTrail log validation
+  - CKV_AWS_15   # CloudTrail multi-region
+  - CKV_AWS_16   # RDS backup retention
+  - CKV_AWS_17   # RDS deletion protection
+  - CKV_AWS_19   # S3 bucket SSL
+  - CKV_AWS_20   # S3 bucket KMS
+  - CKV_AWS_21   # RDS automatic minor version
+  - CKV_AWS_22   # EBS snapshot encryption
+  - CKV_AWS_23   # SG not allow 0.0.0.0/0
+  - CKV_AWS_24   # VPC flow logs
+  - CKV_AWS_25   # EKS cluster logging
+  - CKV_AWS_26   # SNS topic encryption
+  - CKV_AWS_27   # SQS queue encryption
+  - CKV_AWS_28   # DynamoDB encryption
+  - CKV_AWS_29   # ELB access logging
+  - CKV_AWS_144  # S3 bucket Object Lock
+  - CKV_AWS_145  # S3 bucket SSE-KMS
+  - CKV_AWS_146  # KMS key rotation
+  - CKV2_AWS_2   # CloudTrail enabled (multi-account)
+  - CKV2_AWS_3   # Config enabled
+  - CKV2_AWS_6   # S3 bucket versioning (all)
+  - CKV2_AWS_8   # RDS backup (all)
+  - CKV2_AWS_9   # VPC flow logs (all)
+  - CKV2_AWS_10  # IAM user MFA (all)
+  - CKV2_AWS_11  # EBS encryption (all)
+  - CKV2_AWS_12  # KMS key rotation (all)
+  - CKV2_AWS_14  # S3 bucket encryption (all)
