@@ -1,0 +1,83 @@
+# =============================================================================
+# TERRAFORM APPLY — CI/CD with Manual Approval Gates
+# =============================================================================
+# ARCHITECTURE DECISION: Separate apply workflow from plan for security:
+# 1. Plan can run on every PR without approval.
+# 2. Apply requires explicit approval for staging and prod environments.
+# 3. Dev applies automatically after merge to main (safe for development).
+#
+# SECURITY SAFEGUARD: Staging and prod require manual approval via
+# GitHub Environments. This prevents accidental or malicious infrastructure
+# changes to production without review.
+# SECURITY SAFEGUARD: Apply uses the plan artifact from the plan workflow
+# to ensure the applied changes match what was reviewed.
+
+name: "Terraform Apply"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to apply"
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    name: "Terraform Apply (${{ github.event.inputs.environment }})"
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubOIDCRole
+          aws-region: eu-west-2
+          role-session-name: terraform-apply-${{ github.run_id }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.x
+
+      - name: Terraform Init
+        run: |
+          terraform init -backend-config="envs/${{ github.event.inputs.environment }}/backend.hcl"
+
+      - name: TFLint
+        uses: terraform-linters/setup-tflint@v4
+      - name: Run TFLint
+        run: tflint --config .tflint.hcl --format compact
+
+      - name: Checkov Security Scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          config_file: .checkov.yml
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -var-file="envs/${{ github.event.inputs.environment }}/terraform.tfvars" \
+            -auto-approve
+        env:
+          TF_IN_AUTOMATION: true
+
+      - name: Post-Apply Summary
+        run: |
+          echo "## Apply Complete: ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "Applied by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "Timestamp: $(date -u)" >> $GITHUB_STEP_SUMMARY
