@@ -1,6 +1,6 @@
 # SecondWave — AWS Landing Zone
 
-**Enterprise-grade, FCA-compliant AWS multi-account infrastructure for a 200-person UK fintech.**
+**Reference AWS multi-account landing-zone design targeting FCA-aligned controls (design intent; not assessed).**
 
 > **Scenario:** SecondWave is a London-based fintech scaling from 50 to 200 employees.
 > They process financial transactions regulated by the FCA and need to migrate from
